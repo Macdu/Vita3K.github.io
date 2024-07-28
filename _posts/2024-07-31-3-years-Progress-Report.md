@@ -40,11 +40,17 @@ Up to this point, to simulate this, Vita3K had a really simple model which basic
 
 "Memory mapping" is an improved way to simulate the unified memory layout of the PS Vita (there are actually multiple implementations for it available on Android, each with its upsides and downsides: native buffer, double buffer...). It results in greatly improved performances and much improved accuracy.
 
+<iframe frameborder="0" class="juxtapose" width="100%" height="1088" src="https://cdn.knightlab.com/libs/juxtapose/latest/embed/index.html?uid=cfe50540-4d35-11ef-9396-d93975fe8866"></iframe>
+
+**A fighting game is better when you can see yourself and the enemy**
+
 ## Implement shader interlock ([#2716](https://github.com/Vita3K/Vita3K/pull/2716))
 
 The PS Vita GPU is what is called a tiled renderer. This differs significantly from PC GPUs which are called immediate renderers. Each have their pros and cons. One notable advantage for tiled renderers is that when updating the pixel in an image, the color of the pixel before the update can easily be retrieved: this is called framebuffer fetch. 
 
 Framebuffer fetch is not something that is cost-free for immediate renderers and can be really hard to simulate without the right tools. One of the (only) tool to do so is called Shader Interlock.  Shader Interlock is available on most modern GPUs (except AMD GPUs on Windows so far because AMD developpers [don't want to implement it...](https://github.com/GPUOpen-Drivers/AMDVLK/issues/108#issuecomment-524159358)). Implementing it on the Vulkan renderer (it was already implemented on the OpenGL renderer) fixes many transparency and overlapping issues.
+
+<iframe frameborder="0" class="juxtapose" width="100%" height="1088" src="https://cdn.knightlab.com/libs/juxtapose/latest/embed/index.html?uid=4557c9fc-4d36-11ef-9396-d93975fe8866"></iframe>
 
 ## Implement async pipeline compilation ([#3145](https://github.com/Vita3K/Vita3K/pull/3145))
 
