@@ -32,53 +32,19 @@ Continuing his hot streak and along with Vulkan comes support for upscaling in b
 
 ## Implement memory mapping ([#2272](https://github.com/Vita3K/Vita3K/pull/2272))
 
-<!--
-Memory mapping is a technique used in computer systems to manage and organize the storage of data so that allows programs and the operating system can access it efficiently. It involves creating a mapping between virtual addresses used by software and the physical addresses of the underlying hardware.
+The PS Vita has a unified memory layout, meaning that both the CPU and GPU have access to the same memory. This is different compared to modern computers, where the memory accessed by the CPU and GPU is most of the time separated. 
 
-Here's a breakdown of the most important aspects of memory mapping:
+Up to this point, to simulate this, Vita3K had a really simple model which basically was: everytime the GPU wanted to access any ressource, copy it entirely from the RAM to some one-time use GPU memory. This worked most of the time but had many downsides:
+- This is incredibly inefficient and wastes many CPU cycles as well as the memory bandwidth. Note that this is not too much of an issue on most PCs but it becomes one on mobile devices.
+- Except the image being rendered, the GPU cannot modify the ressources it accesses (as they are only one-time copies). However, the PS Vita supports writing to ressources, which means games using this feature will exhibit graphical issues.
 
-1. **Virtual Memory:**
-   - **Virtual Addresses:** In modern computer systems, programs use virtual memory addresses that are separate from physical memory addresses. This allows for a more flexible and efficient use of memory.
-   - **Address Translation:** Memory mapping involves the translation of virtual addresses used by software into physical addresses where the actual data is stored.
-
-2. **Address Spaces:**
-   - **Program Address Space:** Each running program has its own virtual address space, which is the range of addresses the program can use. This includes code, data, and stack segments.
-   - **Operating System Address Space:** The operating system has its own address space that includes the kernel and system-related data structures.
-
-3. **Types of Memory Mapping:**
-   - **File Mapping:** Memory mapping is commonly used in file I/O operations. Files can be mapped into memory, allowing programs to read and write to the file as if it were an array in memory. Changes made in memory are automatically reflected in the file, and vice versa.
-   - **Anonymous Mapping:** In this case, memory is mapped without associating it with a specific file. This is often used for interprocess communication or creating shared memory regions between different processes.
-
-4. **Benefits:**
-   - **Efficiency:** Memory mapping can enhance system performance by reducing the need for manual I/O operations. Mapped files allow direct access to data, eliminating the need for explicit read and write calls.
-   - **Simplified I/O:** Mapping files into memory simplifies I/O operations. Instead of managing complex read and write operations, programs can manipulate data in memory as if it were a regular array.
-   - **Interprocess Communication:** Memory mapping facilitates communication between different processes by allowing them to share a common memory region.
-
-5. **Implementation:**
-   - **Operating System Support:** Memory mapping is implemented and managed by the operating system. APIs (Application Programming Interfaces) provide functions for programs to request and use memory mappings.
-   - **Page Tables:** Virtual-to-physical address translation is often managed through page tables. These tables map virtual pages to corresponding physical pages in the memory.
-
-6. **Security and Protection:**
-   - **Memory Protection:** Memory mapping allows for the enforcement of memory protection mechanisms. For example, read-only sections of an executable file can be mapped as read-only in memory.
-
-In summary, memory mapping is a powerful mechanism that facilitates efficient data access, particularly in the context of file I/O and interprocess communication. It allows programs to manipulate data as if it were in memory, providing simplicity and improved performance.
-
-Thanks to chatgpt lol.
--->
+"Memory mapping" is an improved way to simulate the unified memory layout of the PS Vita (there are actually multiple implementations for it available on Android, each with its upsides and downsides: native buffer, double buffer...). It results in greatly improved performances and much improved accuracy.
 
 ## Implement shader interlock ([#2716](https://github.com/Vita3K/Vita3K/pull/2716))
 
-<!--
-Shader interlock refers to a scenario in graphics programming where the execution of one shader is dependent on the results of another shader. Shaders are small programs that run on a graphics processing unit (GPU) and are responsible for tasks such as vertex manipulation, pixel shading, and other graphics-related computations.
+The PS Vita GPU is what is called a tiled renderer. This differs significantly from PC GPUs which are called immediate renderers. Each have their pros and cons. One notable advantage for tiled renderers is that when updating the pixel in an image, the color of the pixel before the update can easily be retrieved: this is called framebuffer fetch. 
 
-In a graphics pipeline, shaders often run concurrently on multiple processing units within the GPU. Shader interlock issues can arise when the results produced by one shader are required by another shader that is running simultaneously. This dependency between shaders can lead to synchronization challenges and potential performance bottlenecks.
-
-To mitigate shader interlock, developers need to carefully manage the order of execution and synchronization points between different shaders. Various techniques, such as barrier synchronization or memory fences, may be employed to ensure that the required data is available when needed and that shaders are executed in the correct sequence.
-
-Shader interlock is a consideration in parallel processing environments like GPUs, where multiple threads or processing units operate concurrently. Efficiently managing shader interlock is crucial for achieving optimal performance in graphics applications and ensuring that shaders can operate cohesively without unnecessary delays. This is particularly important in modern graphics APIs like Vulkan or DirectX 12, which provide more explicit control over parallelism and synchronization in the graphics pipeline.
-
-Used chatgpt to generate this section.
--->
+Framebuffer fetch is not something that is cost-free for immediate renderers and can be really hard to simulate without the right tools. One of the (only) tool to do so is called Shader Interlock.  Shader Interlock is available on most modern GPUs (except AMD GPUs on Windows so far because AMD developpers [don't want to implement it...](https://github.com/GPUOpen-Drivers/AMDVLK/issues/108#issuecomment-524159358)). Implementing it on the Vulkan renderer (it was already implemented on the OpenGL renderer) fixes many transparency and overlapping issues.
 
 ## Implement async pipeline compilation ([#3145](https://github.com/Vita3K/Vita3K/pull/3145))
 
